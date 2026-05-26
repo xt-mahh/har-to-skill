@@ -13,6 +13,5 @@ dependencies = [
 [project.scripts]
 har-to-skill = "har_to_skill.__main__:main"
 
-[tool.setuptools]
-packages = ["."]
-package-dir = {"har_to_skill" = "."}
+[tool.setuptools.packages.find]
+where = ["."]

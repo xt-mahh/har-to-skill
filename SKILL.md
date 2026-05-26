@@ -73,6 +73,89 @@ python -m har_to_skill /path/to/capture.har --service open.feishu.cn
 - URL query 中的敏感参数（`?token=`、`?api_key=`）自动清理
 - 输出前二次扫描验证，发现残留凭据将中断输出
 
+---
+
+## 🤖 Agent 智能生成指南（核心逻辑）
+
+当你（作为Agent）解析 HAR 文件生成 SKILL.md 时，按照以下规则智能推测内容，而非硬编码实现：
+
+### 1. 服务类型检测（根据域名）
+优先根据请求域名识别服务类型：
+| 域名匹配 | 服务名称 | 预设标签 |
+|----------|----------|----------|
+| `feishu.cn` / `larksuite.com` | 飞书开放平台 | `["飞书", "企业协作", "开放API"]` |
+| `dingtalk.com` | 钉钉开放平台 | `["钉钉", "阿里生态", "企业办公"]` |
+| `weixin.qq.com` | 企业微信开放平台 | `["企业微信", "腾讯生态", "办公API"]` |
+| `slack.com` | Slack | `["Slack", "团队沟通"]` |
+| `github.com` | GitHub | `["GitHub", "代码托管"]` |
+| `notion.so` | Notion | `["Notion", "知识库"]` |
+| `aliyun.com` / `aliyuncs.com` | 阿里云 | `["阿里云", "云服务"]` |
+| 其他通用域名 | 对应服务名称 | `["API", "auto-generated"]` |
+
+### 2. Frontmatter 生成规则
+```yaml
+name: "{服务名称} Skill"
+description: |
+  {服务名称} API 自动化 Skill，由 HAR 文件自动生成。
+  包含 {n} 个常用端点，可直接用于构建 {服务名称} 工作流。
+  ⚠️ 所有认证凭据已脱敏，请替换为实际凭证后使用。
+metadata:
+  hermes:
+    tags: ["auto-generated", "api", "{服务标签1}", "{服务标签2}", "auth:{认证类型}"]
+    service_type: "{服务名称}"
+    source_har: "{HAR文件名}"
+    endpoint_count: {n}
+    auth_types: ["{认证类型列表}"]
+    security_note: "tokens_redacted"
+```
+
+### 3. API 端点功能推测规则
+根据请求方法 + 路径关键词智能生成功能描述：
+
+| 方法 | 路径关键词 | 功能描述示例 |
+|------|------------|--------------|
+| GET | `/login` `/auth` `/token` | 获取访问凭证 |
+| GET | `/user/me` `/user/info` | 获取当前用户信息 |
+| GET | `/list` `/users` `/files` | 查询{资源名称}列表 |
+| GET | `/get` `/detail` `/\{id\}` | 查询{资源名称}详情 |
+| POST | `/create` `/add` `/send` | 创建/发送{资源名称} |
+| POST/PUT | `/update` `/edit` | 更新{资源名称}信息 |
+| DELETE | `/delete` `/remove` | 删除{资源名称}资源 |
+| POST | `/upload` | 上传{资源名称} |
+| GET | `/download` | 下载{资源名称} |
+| * | `/search` | 搜索{资源名称} |
+| * | `/notification` `/notify` | 发送通知 |
+
+通用 fallback 规则：
+- GET 请求：`查询{路径最后一段}信息`
+- POST 请求：`创建{路径最后一段}资源`
+- PUT/PATCH 请求：`更新{路径最后一段}信息`
+- DELETE 请求：`删除{路径最后一段}资源`
+
+### 4. 输出内容结构
+每个端点必须包含：
+```markdown
+### {方法} {路径模式}
+{智能推测的功能描述}
+- 状态码: `{实际状态码}`
+- 调用次数: {录制中出现的次数（可选）}
+
+```bash
+{参数化的 curl 命令，所有token替换为<TOKEN>，敏感参数替换为占位符}
+```
+
+**请求体结构:**
+```json
+{参数化的请求体结构，值替换为<STRING>/<NUMBER>/<BOOLEAN>等类型占位符}
+```
+
+**响应示例:**
+```json
+{响应内容示例，过长时截断}
+```
+---
+```
+
 ## 注意事项
 
 - **HAR 文件可能包含敏感信息**，不要在他人设备上操作
