@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# pytest
+.pytest_cache/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Hermes (local config)
+.hermes/
+
+# Logs
+*.log
+
+# Allow GitHub workflows
+!/.github/

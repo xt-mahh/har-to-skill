@@ -1,0 +1,18 @@
+[project]
+name = "har_to_skill"
+version = "0.1.0"
+description = "Convert HAR files to Hermes skills"
+authors = [
+  { name = "har-to-skill Team" }
+]
+requires-python = ">=3.8"
+dependencies = [
+  "pyyaml>=6.0"
+]
+
+[project.scripts]
+har-to-skill = "har_to_skill.__main__:main"
+
+[tool.setuptools]
+packages = ["."]
+package-dir = {"har_to_skill" = "."}
