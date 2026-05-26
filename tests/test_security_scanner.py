@@ -7,8 +7,10 @@ from scripts.security_scanner import SecurityScanner
 
 class MockEntry:
     """Minimal mock entry compatible with HarEntry interface."""
-    def __init__(self, request_headers=None, url="", request_body=None,
-                 response_body=None):
+
+    def __init__(
+        self, request_headers=None, url="", request_body=None, response_body=None
+    ):
         self.request_headers = request_headers or {}
         self.url = url
         self.request_body = request_body
@@ -28,6 +30,7 @@ def strict_scanner():
 # ---------------------------------------------------------------------------
 # scan_entry — detection tests
 # ---------------------------------------------------------------------------
+
 
 def test_scan_entry_detects_jwt(scanner):
     """JWT tokens in headers should be flagged as critical."""
@@ -101,6 +104,7 @@ def test_scan_entry_detects_internal_ip_in_response(scanner):
 # sanitize_headers
 # ---------------------------------------------------------------------------
 
+
 def test_sanitize_headers_redacts_sensitive_keys(scanner):
     """Authorization, X-Api-Key, Cookie etc. should be redacted."""
     headers = {
@@ -130,6 +134,7 @@ def test_sanitize_headers_handles_empty_dict(scanner):
 # sanitize_url
 # ---------------------------------------------------------------------------
 
+
 def test_sanitize_url_removes_sensitive_params(scanner):
     """URL query parameters like token, api_key, secret should be stripped."""
     url = "https://api.example.com/data?token=abc123&api_key=xyz789&name=test&secret=mys3cret"
@@ -158,6 +163,7 @@ def test_sanitize_url_no_query_string(scanner):
 # scan_output
 # ---------------------------------------------------------------------------
 
+
 def test_scan_output_detects_sensitive_data(scanner):
     """Scanning output markdown should detect leaked secrets."""
     skill_md = (
@@ -165,7 +171,7 @@ def test_scan_output_detects_sensitive_data(scanner):
         "```\n"
         "Authorization: Bearer sk-abcdef1234567890abcdef1234567890\n"
         "```\n\n"
-        'Phone: 13912345678\n\n'
+        "Phone: 13912345678\n\n"
         "Internal IP: 192.168.1.1\n"
     )
     findings = scanner.scan_output(skill_md)
@@ -186,6 +192,7 @@ def test_scan_output_clean_md(scanner):
 # report
 # ---------------------------------------------------------------------------
 
+
 def test_report_empty_findings(scanner):
     """No findings should produce a pass message."""
     msg = scanner.report([])
@@ -195,10 +202,12 @@ def test_report_empty_findings(scanner):
 def test_report_with_findings(scanner):
     """Findings should produce a formatted report with severity icons."""
     findings = [
-        {"type": "jwt", "location": "request.headers.Authorization",
-         "severity": "critical"},
-        {"type": "api_key_in_url", "location": "request.url",
-         "severity": "high"},
+        {
+            "type": "jwt",
+            "location": "request.headers.Authorization",
+            "severity": "critical",
+        },
+        {"type": "api_key_in_url", "location": "request.url", "severity": "high"},
     ]
     msg = scanner.report(findings)
     assert "CRITICAL" in msg
@@ -210,6 +219,7 @@ def test_report_with_findings(scanner):
 # ---------------------------------------------------------------------------
 # Edge cases
 # ---------------------------------------------------------------------------
+
 
 def test_scan_entry_no_sensitive_data(scanner):
     """Entry with no sensitive data should return empty findings."""

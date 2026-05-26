@@ -12,15 +12,22 @@ from scripts.api_analyzer import ApiEndpoint
 
 
 class SkillGenerator:
-    def __init__(self, har_filename: str = "recording.har",
-                 timestamp: str | None = None,
-                 service_name: str | None = None):
+    def __init__(
+        self,
+        har_filename: str = "recording.har",
+        timestamp: str | None = None,
+        service_name: str | None = None,
+    ):
         self.har_name = os.path.splitext(os.path.basename(har_filename))[0]
         self.timestamp = timestamp or datetime.now().isoformat()
         self.service_name = service_name or f"auto-{self.har_name}"
 
     def generate(self, endpoints: list[ApiEndpoint], har_path: str = "") -> str:
-        return self._gen_frontmatter(endpoints, har_path) + "\n" + self._gen_body(endpoints)
+        return (
+            self._gen_frontmatter(endpoints, har_path)
+            + "\n"
+            + self._gen_body(endpoints)
+        )
 
     def _gen_frontmatter(self, endpoints, har_path) -> str:
         meta = {
@@ -41,7 +48,7 @@ class SkillGenerator:
                     "endpoint_count": len(endpoints),
                     "security_note": "tokens_redacted",
                 }
-            }
+            },
         }
         return f"---\n{yaml.dump(meta, default_flow_style=False, allow_unicode=True, sort_keys=False, indent=2)}---\n"
 
@@ -61,7 +68,9 @@ class SkillGenerator:
             lines.append("## 认证\n")
             for at in sorted(auth_types):
                 if at == "bearer":
-                    lines.append("**方式:** Bearer Token（`Authorization: Bearer <TOKEN>`）\n")
+                    lines.append(
+                        "**方式:** Bearer Token（`Authorization: Bearer <TOKEN>`）\n"
+                    )
                 elif at == "apikey":
                     lines.append("**方式:** API Key（`X-API-Key: <API_KEY>`）\n")
                 else:
@@ -86,9 +95,11 @@ class SkillGenerator:
             lines.append("```\n")
 
             if ep.request_body_schema:
-                lines.append("**请求体结构:**\n```json\n"
-                            + json.dumps(ep.request_body_schema, ensure_ascii=False, indent=2)
-                            + "\n```\n")
+                lines.append(
+                    "**请求体结构:**\n```json\n"
+                    + json.dumps(ep.request_body_schema, ensure_ascii=False, indent=2)
+                    + "\n```\n"
+                )
 
             if ep.response_body_sample:
                 resp = ep.response_body_sample
@@ -108,7 +119,7 @@ class SkillGenerator:
 
     def _gen_curl(self, ep: ApiEndpoint) -> str:
         url = ep.base_url + ep.path_pattern
-        parts = [f"curl -s -X {ep.method} \"{url}\""]
+        parts = [f'curl -s -X {ep.method} "{url}"']
         token_inserted = False
         for k, v in ep.request_headers.items():
             if k in ("authorization", "x-api-key"):
@@ -136,7 +147,7 @@ class SkillGenerator:
             elif isinstance(d, list):
                 return [walk(d[0])] if d else []
             elif isinstance(d, str):
-                if re.match(r'^cli_', d) or len(d) > 20:
+                if re.match(r"^cli_", d) or len(d) > 20:
                     return "<SECRET>"
                 return "<string>"
             elif isinstance(d, bool):
@@ -144,26 +155,32 @@ class SkillGenerator:
             elif isinstance(d, (int, float)):
                 return 0
             return None
+
         return json.dumps(walk(data), ensure_ascii=False, indent=2)
 
     def _infer_description(self, ep: ApiEndpoint) -> str | None:
         path = ep.path_pattern.lower()
         method = ep.method.upper()
         patterns = [
-            (r'/login|/auth|/token', '认证 / 登录'),
-            (r'/user|/users|/member|/members', '用户管理'),
-            (r'/contact|/contacts', '联系人管理'),
-            (r'/message|/messages|/chat|/im', '消息 / 即时通讯'),
-            (r'/file|/files|/upload|/download|/drive', '文件管理'),
-            (r'/calendar|/event|/events', '日历 / 日程'),
-            (r'/task|/tasks', '任务管理'),
-            (r'/doc|/docs|/document|/documents|/wiki', '文档 / 知识库'),
-            (r'/sheet|/sheets|/spreadsheet|/table|/base', '表格 / 多维表格'),
-            (r'/search', '搜索'),
-            (r'/notification|/notify', '通知'),
+            (r"/login|/auth|/token", "认证 / 登录"),
+            (r"/user|/users|/member|/members", "用户管理"),
+            (r"/contact|/contacts", "联系人管理"),
+            (r"/message|/messages|/chat|/im", "消息 / 即时通讯"),
+            (r"/file|/files|/upload|/download|/drive", "文件管理"),
+            (r"/calendar|/event|/events", "日历 / 日程"),
+            (r"/task|/tasks", "任务管理"),
+            (r"/doc|/docs|/document|/documents|/wiki", "文档 / 知识库"),
+            (r"/sheet|/sheets|/spreadsheet|/table|/base", "表格 / 多维表格"),
+            (r"/search", "搜索"),
+            (r"/notification|/notify", "通知"),
         ]
-        method_map = {"GET": "查询", "POST": "创建", "PUT": "更新",
-                     "PATCH": "部分更新", "DELETE": "删除"}
+        method_map = {
+            "GET": "查询",
+            "POST": "创建",
+            "PUT": "更新",
+            "PATCH": "部分更新",
+            "DELETE": "删除",
+        }
         for pat, desc in patterns:
             if re.search(pat, path):
                 return f"{method_map.get(method, method)}{desc}"

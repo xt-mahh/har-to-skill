@@ -6,26 +6,56 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
-
 NOISE_DOMAINS = {
-    "google-analytics.com", "doubleclick.net", "googletagmanager.com",
-    "sentry.io", "amplitude.com", "mixpanel.com", "facebook.net",
-    "facebook.com/tr", "hotjar.com", "fullstory.com", "segment.io",
-    "segment.com", "cdn.jsdelivr.net", "cdnjs.cloudflare.com",
-    "fonts.googleapis.com", "fonts.gstatic.com",
+    "google-analytics.com",
+    "doubleclick.net",
+    "googletagmanager.com",
+    "sentry.io",
+    "amplitude.com",
+    "mixpanel.com",
+    "facebook.net",
+    "facebook.com/tr",
+    "hotjar.com",
+    "fullstory.com",
+    "segment.io",
+    "segment.com",
+    "cdn.jsdelivr.net",
+    "cdnjs.cloudflare.com",
+    "fonts.googleapis.com",
+    "fonts.gstatic.com",
 }
 
 NOISE_URL_FRAGMENTS = {
-    "/analytics/", "/collect", "/beacon", "/ping",
-    ".js", ".css", ".png", ".jpg", ".jpeg", ".gif",
-    ".svg", ".woff", ".woff2", ".ico", ".webp",
-    ".mp4", ".mp3", ".m3u8", ".ts",
+    "/analytics/",
+    "/collect",
+    "/beacon",
+    "/ping",
+    ".js",
+    ".css",
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".gif",
+    ".svg",
+    ".woff",
+    ".woff2",
+    ".ico",
+    ".webp",
+    ".mp4",
+    ".mp3",
+    ".m3u8",
+    ".ts",
 }
 
 API_CONTENT_TYPES = {
-    "application/json", "application/xml", "text/xml",
-    "application/x-www-form-urlencoded", "multipart/form-data",
-    "text/plain", "application/grpc", "application/x-protobuf",
+    "application/json",
+    "application/xml",
+    "text/xml",
+    "application/x-www-form-urlencoded",
+    "multipart/form-data",
+    "text/plain",
+    "application/grpc",
+    "application/x-protobuf",
     "application/octet-stream",
 }
 
@@ -54,14 +84,12 @@ class HarParser:
                 method=req.get("method", "GET"),
                 url=req.get("url", ""),
                 request_headers={
-                    h["name"].lower(): h["value"]
-                    for h in req.get("headers", [])
+                    h["name"].lower(): h["value"] for h in req.get("headers", [])
                 },
                 request_body=self._extract_body(req.get("postData")),
                 response_status=res.get("status", 0),
                 response_headers={
-                    h["name"].lower(): h["value"]
-                    for h in res.get("headers", [])
+                    h["name"].lower(): h["value"] for h in res.get("headers", [])
                 },
                 response_body=self._extract_body(res.get("content")),
                 timestamp=e.get("startedDateTime", ""),
@@ -99,10 +127,9 @@ class HarParser:
         for frag in NOISE_URL_FRAGMENTS:
             if frag in url_lower and not is_api_path:
                 return False
-        content_type = (
-            entry.response_headers.get("content-type", "")
-            or entry.request_headers.get("content-type", "")
-        )
+        content_type = entry.response_headers.get(
+            "content-type", ""
+        ) or entry.request_headers.get("content-type", "")
         for ct in API_CONTENT_TYPES:
             if ct in content_type:
                 return True

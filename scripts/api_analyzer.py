@@ -26,19 +26,19 @@ class ApiEndpoint:
 
 class ApiAnalyzer:
     PARAM_PATTERNS = [
-        (r'^\d+$', '{id}'),
-        (r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', '{uuid}'),
-        (r'^[0-9a-f]{32}$', '{hash}'),
-        (r'^[0-9a-f]{40}$', '{hash}'),
-        (r'^[A-Za-z0-9_-]{20,}$', '{token}'),
-        (r'^\d{4}-\d{2}-\d{2}', '{date}'),
-        (r'^\d{4}\d{2}\d{2}$', '{date}'),
+        (r"^\d+$", "{id}"),
+        (r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", "{uuid}"),
+        (r"^[0-9a-f]{32}$", "{hash}"),
+        (r"^[0-9a-f]{40}$", "{hash}"),
+        (r"^[A-Za-z0-9_-]{20,}$", "{token}"),
+        (r"^\d{4}-\d{2}-\d{2}", "{date}"),
+        (r"^\d{4}\d{2}\d{2}$", "{date}"),
     ]
 
     AUTH_HEADERS = {
-        'authorization': {'pattern': r'^Bearer\s+(\S+)', 'type': 'bearer'},
-        'x-api-key':     {'pattern': r'^(\S+)$',          'type': 'apikey'},
-        'x-tenant-key':  {'pattern': r'^(\S+)$',          'type': 'tenant'},
+        "authorization": {"pattern": r"^Bearer\s+(\S+)", "type": "bearer"},
+        "x-api-key": {"pattern": r"^(\S+)$", "type": "apikey"},
+        "x-tenant-key": {"pattern": r"^(\S+)$", "type": "tenant"},
     }
 
     def cluster_by_service(self, entries: list[HarEntry]) -> dict[str, list[HarEntry]]:
@@ -93,8 +93,8 @@ class ApiAnalyzer:
         for header_name, config in self.AUTH_HEADERS.items():
             for e in entries:
                 val = e.request_headers.get(header_name)
-                if val and re.match(config['pattern'], val):
-                    return (config['type'], f"{config['type'].upper()} <TOKEN>")
+                if val and re.match(config["pattern"], val):
+                    return (config["type"], f"{config['type'].upper()} <TOKEN>")
         return (None, None)
 
     def abstract_request_body(self, entry: HarEntry) -> dict | None:
@@ -118,10 +118,14 @@ class ApiAnalyzer:
         elif isinstance(data, float):
             return "<number>"
         elif isinstance(data, str):
-            if re.match(r'^cli_', data):          return "<app_id>"
-            if re.match(r'^t-', data):             return "<token>"
-            if len(data) > 30:                     return "<secret>"
-            if data.startswith("http"):             return "<url>"
+            if re.match(r"^cli_", data):
+                return "<app_id>"
+            if re.match(r"^t-", data):
+                return "<token>"
+            if len(data) > 30:
+                return "<secret>"
+            if data.startswith("http"):
+                return "<url>"
             return "<string>"
         return "<unknown>"
 
@@ -136,23 +140,37 @@ class ApiAnalyzer:
             urls = [e.url for e in group]
             base_url, path_pattern, _ = self.extract_path_pattern(urls)
             latest = group[-1]
-            successful = next((e for e in group if 200 <= e.response_status < 300), latest)
+            successful = next(
+                (e for e in group if 200 <= e.response_status < 300), latest
+            )
             auth_type, _ = self.detect_auth(group)
             clean_headers = {
                 k: ("<TOKEN>" if k in self.AUTH_HEADERS else v)
                 for k, v in successful.request_headers.items()
-                if k not in ("user-agent", "accept", "accept-encoding",
-                            "accept-language", "cache-control", "pragma",
-                            "sec-fetch-*", "upgrade-insecure-requests")
+                if k
+                not in (
+                    "user-agent",
+                    "accept",
+                    "accept-encoding",
+                    "accept-language",
+                    "cache-control",
+                    "pragma",
+                    "sec-fetch-*",
+                    "upgrade-insecure-requests",
+                )
             }
             body_schema = self.abstract_request_body(successful)
             ep = ApiEndpoint(
-                method=method, path_pattern=path_pattern, base_url=base_url,
-                request_headers=clean_headers, auth_type=auth_type,
+                method=method,
+                path_pattern=path_pattern,
+                base_url=base_url,
+                request_headers=clean_headers,
+                auth_type=auth_type,
                 request_body_example=successful.request_body,
                 request_body_schema=body_schema,
                 response_body_sample=successful.response_body,
-                status_code=successful.response_status, count=len(group),
+                status_code=successful.response_status,
+                count=len(group),
             )
             endpoints.append(ep)
 
@@ -161,7 +179,9 @@ class ApiAnalyzer:
             key = (ep.method, ep.path_pattern)
             if key in merged:
                 merged[key].count += ep.count
-                merged[key].response_body_sample = ep.response_body_sample or merged[key].response_body_sample
+                merged[key].response_body_sample = (
+                    ep.response_body_sample or merged[key].response_body_sample
+                )
             else:
                 merged[key] = ep
         return list(merged.values())

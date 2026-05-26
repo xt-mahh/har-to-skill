@@ -7,7 +7,6 @@ import pytest
 
 from scripts.har_parser import HarParser, HarEntry
 
-
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
 

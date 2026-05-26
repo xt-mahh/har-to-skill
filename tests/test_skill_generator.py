@@ -36,11 +36,13 @@ def post_endpoint():
             "content-type": "application/json",
         },
         auth_type="bearer",
-        request_body_example=json.dumps({
-            "name": "Alice",
-            "email": "alice@example.com",
-            "token": "cli_secret123",
-        }),
+        request_body_example=json.dumps(
+            {
+                "name": "Alice",
+                "email": "alice@example.com",
+                "token": "cli_secret123",
+            }
+        ),
         status_code=201,
         count=3,
     )
@@ -65,6 +67,7 @@ def api_key_endpoint():
 @pytest.fixture
 def generator():
     from scripts.skill_generator import SkillGenerator
+
     return SkillGenerator(
         har_filename="recording.har",
         timestamp="2025-01-15T10:00:00",
@@ -96,7 +99,9 @@ class TestFrontmatter:
         data = yaml.safe_load(match.group(1))
         assert data["metadata"]["hermes"]["source_har"] == "recordings/recording.har"
 
-    def test_frontmatter_with_multiple_endpoints(self, generator, basic_endpoint, post_endpoint):
+    def test_frontmatter_with_multiple_endpoints(
+        self, generator, basic_endpoint, post_endpoint
+    ):
         """Frontmatter must reflect count of multiple endpoints."""
         frontmatter = generator._gen_frontmatter(
             [basic_endpoint, post_endpoint], har_path="recording.har"
@@ -152,12 +157,14 @@ class TestAuthSection:
 class TestParameterize:
     def test_parameterize_body_sensitive_values_replaced(self, generator):
         """Sensitive values in request body must be replaced."""
-        body = json.dumps({
-            "name": "Alice",
-            "token": "cli_secret123",
-            "secret_key": "a" * 30,
-            "age": 30,
-        })
+        body = json.dumps(
+            {
+                "name": "Alice",
+                "token": "cli_secret123",
+                "secret_key": "a" * 30,
+                "age": 30,
+            }
+        )
         result = generator._parameterize_body(body)
         parsed = json.loads(result)
         assert parsed["name"] == "<string>"

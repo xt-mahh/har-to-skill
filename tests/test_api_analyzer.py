@@ -56,24 +56,24 @@ class TestClusterByService:
 
 class TestExtractPathPattern:
     def test_single_url_parameterizes_id(self, analyzer):
-        base, pattern, example = analyzer.extract_path_pattern([
-            "https://api.example.com/v1/users/12345"
-        ])
+        base, pattern, example = analyzer.extract_path_pattern(
+            ["https://api.example.com/v1/users/12345"]
+        )
         assert base == "https://api.example.com"
         assert "{id}" in pattern
         assert "12345" in example
 
     def test_single_url_parameterizes_uuid(self, analyzer):
-        base, pattern, example = analyzer.extract_path_pattern([
-            "https://api.example.com/v1/orders/550e8400-e29b-41d4-a716-446655440000"
-        ])
+        base, pattern, example = analyzer.extract_path_pattern(
+            ["https://api.example.com/v1/orders/550e8400-e29b-41d4-a716-446655440000"]
+        )
         assert base == "https://api.example.com"
         assert "{uuid}" in pattern
 
     def test_single_url_preserves_literal_segments(self, analyzer):
-        base, pattern, _ = analyzer.extract_path_pattern([
-            "https://api.example.com/v1/users"
-        ])
+        base, pattern, _ = analyzer.extract_path_pattern(
+            ["https://api.example.com/v1/users"]
+        )
         assert "v1" in pattern
         assert "users" in pattern
 
@@ -152,9 +152,7 @@ class TestDetectAuth:
 
 class TestRequestBodySchema:
     def test_simple_dict_schema(self, analyzer):
-        entry = make_entry(
-            request_body='{"name": "Alice", "age": 30, "active": true}'
-        )
+        entry = make_entry(request_body='{"name": "Alice", "age": 30, "active": true}')
         schema = analyzer.abstract_request_body(entry)
         assert schema == {
             "name": "<string>",
@@ -163,9 +161,7 @@ class TestRequestBodySchema:
         }
 
     def test_nested_dict_schema(self, analyzer):
-        entry = make_entry(
-            request_body='{"user": {"name": "Alice", "age": 30}}'
-        )
+        entry = make_entry(request_body='{"user": {"name": "Alice", "age": 30}}')
         schema = analyzer.abstract_request_body(entry)
         assert schema == {"user": {"name": "<string>", "age": "<integer>"}}
 

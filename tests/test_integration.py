@@ -36,6 +36,7 @@ def test_simple_har_pipeline():
 def test_generated_frontmatter_is_valid_yaml():
     """frontmatter YAML 合法"""
     import yaml
+
     output = _run_pipeline(str(FIXTURES / "simple-api.har"))
     _, front, _ = output.split("---", 2)
     meta = yaml.safe_load(front)
@@ -84,11 +85,18 @@ def test_lark_has_curl_command():
 def test_cli_invocation():
     """CLI 入口应正常工作"""
     import subprocess
+
     result = subprocess.run(
-        [sys.executable, "-m", "har_to_skill",
-         "tests/fixtures/simple-api.har",
-         "--name", "test-cli"],
-        capture_output=True, text=True,
+        [
+            sys.executable,
+            "-m",
+            "har_to_skill",
+            "tests/fixtures/simple-api.har",
+            "--name",
+            "test-cli",
+        ],
+        capture_output=True,
+        text=True,
         cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
     )
     assert result.returncode == 0
