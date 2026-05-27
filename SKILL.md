@@ -1,7 +1,7 @@
 ---
 name: har-to-skill
 description: "从浏览器录制的 HAR 文件自动生成 Hermes Skill。录制 → 导出 → 自动生成可复用的 SKILL.md + curl 命令。"
-version: 1.0.0
+version: 1.0.0 
 author: hermes-agent
 metadata:
   hermes:
@@ -13,7 +13,7 @@ metadata:
 
 ## 用途
 
-把浏览器 DevTools 中录制的网络请求导出为 HAR 文件后，自动逆向工程为可直接复用的 Hermes Skill。
+把浏览器 DevTools 中录制的网络请求导出为 HAR 文件后,智能分析推测api功能，自动逆向工程为可直接复用的 Hermes Skill。
 
 ## 工作流
 
@@ -96,12 +96,11 @@ python -m har_to_skill /path/to/capture.har --service open.feishu.cn
 ```yaml
 name: "{服务名称} Skill"
 description: |
-  {服务名称} API 自动化 Skill，由 HAR 文件自动生成。
-  包含 {n} 个常用端点，可直接用于构建 {服务名称} 工作流。
-  ⚠️ 所有认证凭据已脱敏，请替换为实际凭证后使用。
+  {服务名称} API 自动化 Skill，用于构建 {服务名称} 工作流。包括{服务标签1}、{服务标签2}等功能。
+version: "1.0.0"
 metadata:
   hermes:
-    tags: ["auto-generated", "api", "{服务标签1}", "{服务标签2}", "auth:{认证类型}"]
+    tags: ["{服务名称}" ,"{服务标签1}", "{服务标签2}", ...]
     service_type: "{服务名称}"
     source_har: "{HAR文件名}"
     endpoint_count: {n}
